@@ -38,26 +38,29 @@ info "Detected Proxmox VE $PVE_VER"
 
 # 2. Configure APT Repositories (deb822 format for Debian 13 Trixie)
 if prompt_yes_no "Disable Enterprise repos and enable PVE No-Subscription repo?"; then
+    BACKUP_DIR="/root/pve-post-install-backups"
+    mkdir -p "$BACKUP_DIR"
+
     # Disable PVE Enterprise repo if present
     if [[ -f /etc/apt/sources.list.d/pve-enterprise.sources ]]; then
-        cp /etc/apt/sources.list.d/pve-enterprise.sources /etc/apt/sources.list.d/pve-enterprise.sources.bak
+        cp /etc/apt/sources.list.d/pve-enterprise.sources "$BACKUP_DIR/pve-enterprise.sources.bak"
         if grep -q "^Enabled:" /etc/apt/sources.list.d/pve-enterprise.sources; then
             sed -i 's/^Enabled:.*/Enabled: false/' /etc/apt/sources.list.d/pve-enterprise.sources
         else
             echo "Enabled: false" >> /etc/apt/sources.list.d/pve-enterprise.sources
         fi
-        info "Disabled pve-enterprise.sources"
+        info "Disabled pve-enterprise.sources (backup saved to $BACKUP_DIR)"
     fi
 
     # Disable Ceph Enterprise repo if present
     if [[ -f /etc/apt/sources.list.d/ceph.sources ]]; then
-        cp /etc/apt/sources.list.d/ceph.sources /etc/apt/sources.list.d/ceph.sources.bak
+        cp /etc/apt/sources.list.d/ceph.sources "$BACKUP_DIR/ceph.sources.bak"
         if grep -q "^Enabled:" /etc/apt/sources.list.d/ceph.sources; then
             sed -i 's/^Enabled:.*/Enabled: false/' /etc/apt/sources.list.d/ceph.sources
         else
             echo "Enabled: false" >> /etc/apt/sources.list.d/ceph.sources
         fi
-        info "Disabled ceph.sources"
+        info "Disabled ceph.sources (backup saved to $BACKUP_DIR)"
     fi
 
     # Create or overwrite Proxmox No-Subscription deb822 source
